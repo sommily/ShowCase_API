@@ -14,6 +14,11 @@ urlpatterns = [
         name="project-featured",
     ),
     path(
+        "api/showcase/projects/awards/",
+        views.AwardWinnersView.as_view(),
+        name="project-awards",
+    ),
+    path(
         "api/showcase/projects/by-project-id/<str:project_id>/",
         views.ProjectByProjectIdView.as_view(),
         name="project-by-project-id",
@@ -22,6 +27,11 @@ urlpatterns = [
         "api/showcase/projects/<int:pk>/",
         views.ProjectDetailView.as_view(),
         name="project-detail",
+    ),
+    path(
+        "api/showcase/academic-years/",
+        views.AcademicYearsView.as_view(),
+        name="academic-years",
     ),
     path("api/showcase/filters/", views.FiltersView.as_view(), name="filters"),
     # 内部同步 API

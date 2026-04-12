@@ -11,6 +11,8 @@ class ShowcaseProjectAdmin(admin.ModelAdmin):
         "program_name",
         "module_name",
         "semester",
+        "academic_year",
+        "award_level",
         "is_published",
         "is_featured",
         "sort_order",
@@ -20,11 +22,13 @@ class ShowcaseProjectAdmin(admin.ModelAdmin):
         "program_name",
         "module_name",
         "semester",
+        "academic_year",
+        "award_level",
         "is_published",
         "is_featured",
     ]
     search_fields = ["project_id", "title_zh", "title_en", "students", "teachers"]
-    list_editable = ["is_published", "is_featured", "sort_order"]
+    list_editable = ["is_published", "is_featured", "sort_order", "award_level"]
     list_per_page = 20
     ordering = ["sort_order", "-id"]
 
@@ -58,7 +62,19 @@ class ShowcaseProjectAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("展示控制", {"fields": ("tags", "is_featured", "is_published", "sort_order")}),
+        (
+            "展示控制",
+            {
+                "fields": (
+                    "tags",
+                    "is_featured",
+                    "is_published",
+                    "sort_order",
+                    "academic_year",
+                    "award_level",
+                )
+            },
+        ),
         (
             "同步信息",
             {

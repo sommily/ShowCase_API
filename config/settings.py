@@ -100,6 +100,10 @@ if DATABASE_URL and DJ_DATABASE_URL_AVAILABLE:
     ca_cert_path = BASE_DIR / "ca-certificate.crt"
     if ca_cert_path.exists():
         DATABASES["default"]["OPTIONS"] = {"ssl": {"ca": str(ca_cert_path)}}
+    else:
+        # DigitalOcean MySQL requires SSL, use ssl_mode if no local certificate
+        DATABASES["default"].setdefault("OPTIONS", {})
+        DATABASES["default"]["OPTIONS"]["ssl_mode"] = "REQUIRED"
 else:
     # Fallback to individual DB_* environment variables
     DB_ENGINE = os.getenv("DB_ENGINE", "sqlite3")

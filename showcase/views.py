@@ -1,3 +1,4 @@
+from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import generics, status
@@ -77,6 +78,11 @@ class ProjectListView(generics.ListAPIView):
                 | Q(teachers__icontains=keyword)
             )
 
+        # 学年筛选
+        academic_year = self.request.query_params.get("academic_year")
+        if academic_year:
+            queryset = queryset.filter(academic_year=academic_year)
+
         # 排序：sort_order ASC, id DESC
         queryset = queryset.order_by("sort_order", "-id")
 
@@ -121,6 +127,67 @@ class FeaturedProjectsView(APIView):
         return Response(serializer.data)
 
 
+class AcademicYearsView(APIView):
+    """返回所有学年列表及其状态"""
+
+    def get(self, request):
+        # 获取所有已发布项目中的 distinct 学年
+        years = (
+            ShowcaseProject.objects.filter(is_published=True)
+            .values_list("academic_year", flat=True)
+            .distinct()
+            .order_by("-academic_year")
+        )
+
+        years_list = list(years)
+        current_year = max(years_list) if years_list else 2025
+
+        result = {
+            "current_year": current_year,
+            "years": [
+                {
+                    "year": y,
+                    "status": "ongoing" if y == current_year else "completed",
+                    "label": (
+                        f"{y}学年评选（进行中）"
+                        if y == current_year
+                        else f"{y}学年评选"
+                    ),
+                }
+                for y in years_list
+            ],
+        }
+        return Response(result)
+
+
+class AwardWinnersView(generics.ListAPIView):
+    """返回指定学年的获奖作品"""
+
+    serializer_class = ShowcaseProjectListSerializer
+    pagination_class = None  # 不分页
+
+    def get_queryset(self):
+        queryset = ShowcaseProject.objects.filter(
+            is_published=True,
+            award_level__isnull=False,
+        )
+
+        academic_year = self.request.query_params.get("academic_year")
+        if academic_year:
+            queryset = queryset.filter(academic_year=academic_year)
+
+        # 判断是否是当期学年（最大学年）
+        max_year = ShowcaseProject.objects.filter(is_published=True).aggregate(
+            max_year=models.Max("academic_year")
+        )["max_year"]
+
+        # 当期学年不返回获奖数据
+        if academic_year and int(academic_year) == max_year:
+            return ShowcaseProject.objects.none()
+
+        return queryset.order_by("award_level", "sort_order")
+
+
 class FiltersView(APIView):
     """
     GET /api/showcase/filters/
@@ -154,8 +221,19 @@ class FiltersView(APIView):
             .order_by("semester")
         )
 
+        academic_years = list(
+            published_projects.values_list("academic_year", flat=True)
+            .distinct()
+            .order_by("-academic_year")
+        )
+
         return Response(
-            {"programs": programs, "modules": modules, "semesters": semesters}
+            {
+                "programs": programs,
+                "modules": modules,
+                "semesters": semesters,
+                "academic_years": academic_years,
+            }
         )
 
 
@@ -207,6 +285,8 @@ class SyncProjectView(APIView):
             "youtube_url",
             "tags",
             "sheet_row_id",
+            "academic_year",
+            "award_level",
         ]
 
         for field in updatable_fields:
@@ -273,6 +353,8 @@ class BatchSyncView(APIView):
             "youtube_url",
             "tags",
             "sheet_row_id",
+            "academic_year",
+            "award_level",
         ]
 
         for index, item in enumerate(items):

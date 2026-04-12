@@ -31,6 +31,8 @@ class ShowcaseProjectListSerializer(serializers.ModelSerializer):
             "youtube_url",
             "tags",
             "is_featured",
+            "academic_year",
+            "award_level",
         ]
 
     def _split_field(self, value):
@@ -111,4 +113,8 @@ class SyncProjectSerializer(serializers.Serializer):
     )
     tags = serializers.CharField(
         max_length=255, required=False, allow_blank=True, default=""
+    )
+    academic_year = serializers.IntegerField(required=False, default=2025)
+    award_level = serializers.IntegerField(
+        required=False, allow_null=True, default=None
     )

@@ -60,6 +60,20 @@ class ShowcaseProject(models.Model):
     is_published = models.BooleanField(default=True, verbose_name="是否发布")
     sort_order = models.IntegerField(default=0, verbose_name="排序值")
 
+    # 评选活动
+    academic_year = models.IntegerField(default=2025, verbose_name="评选学年")
+    award_level = models.IntegerField(
+        blank=True,
+        null=True,
+        verbose_name="奖项等级",
+        choices=[
+            (1, "一等奖"),
+            (2, "二等奖"),
+            (3, "三等奖"),
+            (4, "优秀奖"),
+        ],
+    )
+
     # 同步信息
     sync_source = models.CharField(
         max_length=50, default="google_sheet", verbose_name="同步来源"
@@ -80,7 +94,7 @@ class ShowcaseProject(models.Model):
 
     class Meta:
         db_table = "showcase_projects"
-        ordering = ["sort_order", "-id"]
+        ordering = ["-academic_year", "sort_order", "-id"]
         verbose_name = "展示项目"
         verbose_name_plural = "展示项目"
 
