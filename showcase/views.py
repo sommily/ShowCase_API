@@ -52,17 +52,13 @@ class ProjectListView(generics.ListAPIView):
         queryset = ShowcaseProject.objects.filter(is_published=True)
 
         # 筛选参数
-        program = self.request.query_params.get("program")
-        module = self.request.query_params.get("module")
+        major = self.request.query_params.get("major")
         semester = self.request.query_params.get("semester")
         featured = self.request.query_params.get("featured")
         keyword = self.request.query_params.get("keyword")
 
-        if program:
-            queryset = queryset.filter(program_name__icontains=program)
-
-        if module:
-            queryset = queryset.filter(module_name__icontains=module)
+        if major:
+            queryset = queryset.filter(major__icontains=major)
 
         if semester:
             queryset = queryset.filter(semester__icontains=semester)
@@ -72,10 +68,9 @@ class ProjectListView(generics.ListAPIView):
 
         if keyword:
             queryset = queryset.filter(
-                Q(title_zh__icontains=keyword)
-                | Q(title_en__icontains=keyword)
+                Q(project_title_cn__icontains=keyword)
+                | Q(project_title_en__icontains=keyword)
                 | Q(students__icontains=keyword)
-                | Q(teachers__icontains=keyword)
             )
 
         # 学年筛选
@@ -197,20 +192,12 @@ class FiltersView(APIView):
     def get(self, request):
         published_projects = ShowcaseProject.objects.filter(is_published=True)
 
-        programs = list(
-            published_projects.exclude(program_name__isnull=True)
-            .exclude(program_name="")
-            .values_list("program_name", flat=True)
+        majors = list(
+            published_projects.exclude(major__isnull=True)
+            .exclude(major="")
+            .values_list("major", flat=True)
             .distinct()
-            .order_by("program_name")
-        )
-
-        modules = list(
-            published_projects.exclude(module_name__isnull=True)
-            .exclude(module_name="")
-            .values_list("module_name", flat=True)
-            .distinct()
-            .order_by("module_name")
+            .order_by("major")
         )
 
         semesters = list(
@@ -229,8 +216,7 @@ class FiltersView(APIView):
 
         return Response(
             {
-                "programs": programs,
-                "modules": modules,
+                "programs": majors,
                 "semesters": semesters,
                 "academic_years": academic_years,
             }
@@ -269,24 +255,39 @@ class SyncProjectView(APIView):
 
         # 可覆盖字段
         updatable_fields = [
-            "program_name",
-            "module_name",
-            "course_name",
+            "major",
             "semester",
-            "title_zh",
-            "title_en",
-            "background",
-            "description",
+            "project_title_cn",
+            "project_title_en",
+            "project_intro",
+            "project_description",
             "features",
             "students",
-            "teachers",
-            "poster_image_url",
-            "thumbnail_image_url",
+            "ib_course",
+            "ib_instructors",
+            "fa_course",
+            "fa_instructors",
+            "tm_course",
+            "tm_instructors",
+            "ge_course",
+            "ge_instructors",
+            "cd_course",
+            "cd_instructors",
+            "ca_course",
+            "ca_instructors",
+            "poster_url",
+            "thumbnail_url",
             "youtube_url",
             "tags",
-            "sheet_row_id",
+            "google_sheet_row_number",
             "academic_year",
             "award_level",
+            "poster_file_id",
+            "poster_file_url",
+            "thumbnail_file_id",
+            "thumbnail_file_url",
+            "submit_timestamp",
+            "email",
         ]
 
         for field in updatable_fields:
@@ -298,7 +299,6 @@ class SyncProjectView(APIView):
                 setattr(project, field, value)
 
         # 更新同步信息
-        project.last_synced_at = timezone.now()
         project.sync_status = "synced"
 
         project.save()
@@ -337,24 +337,39 @@ class BatchSyncView(APIView):
 
         # 可覆盖字段
         updatable_fields = [
-            "program_name",
-            "module_name",
-            "course_name",
+            "major",
             "semester",
-            "title_zh",
-            "title_en",
-            "background",
-            "description",
+            "project_title_cn",
+            "project_title_en",
+            "project_intro",
+            "project_description",
             "features",
             "students",
-            "teachers",
-            "poster_image_url",
-            "thumbnail_image_url",
+            "ib_course",
+            "ib_instructors",
+            "fa_course",
+            "fa_instructors",
+            "tm_course",
+            "tm_instructors",
+            "ge_course",
+            "ge_instructors",
+            "cd_course",
+            "cd_instructors",
+            "ca_course",
+            "ca_instructors",
+            "poster_url",
+            "thumbnail_url",
             "youtube_url",
             "tags",
-            "sheet_row_id",
+            "google_sheet_row_number",
             "academic_year",
             "award_level",
+            "poster_file_id",
+            "poster_file_url",
+            "thumbnail_file_id",
+            "thumbnail_file_url",
+            "submit_timestamp",
+            "email",
         ]
 
         for index, item in enumerate(items):
@@ -390,7 +405,6 @@ class BatchSyncView(APIView):
                         setattr(project, field, value)
 
                 # 更新同步信息
-                project.last_synced_at = timezone.now()
                 project.sync_status = "synced"
 
                 project.save()
