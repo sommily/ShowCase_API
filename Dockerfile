@@ -1,4 +1,5 @@
-FROM python:3.12-slim AS builder
+# FROM python:3.12-slim AS builder
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -8,12 +9,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-libmysqlclient-dev \
     libpq-dev \
     pkg-config \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-FROM python:3.12-slim
+# FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -23,18 +25,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+# COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY . .
-
-# 收集静态文件
-RUN python manage.py collectstatic --noinput || true
 
 # 创建非 root 用户
 RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
 USER appuser
 
+# 启动脚本：先收集静态文件，再启动 Gunicorn
+COPY --chown=appuser:appuser entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 8000
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+ENTRYPOINT ["/app/entrypoint.sh"]

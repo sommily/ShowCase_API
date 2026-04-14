@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -205,4 +206,9 @@ if not CORS_ALLOW_ALL_ORIGINS:
 
 
 # Internal Sync Token
+
+# CSRF Trusted Origins
+_csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(",") if o.strip()]
 INTERNAL_SYNC_TOKEN = os.getenv("INTERNAL_SYNC_TOKEN", "dev-sync-token")
