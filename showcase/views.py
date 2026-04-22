@@ -58,7 +58,7 @@ class ProjectListView(generics.ListAPIView):
         keyword = self.request.query_params.get("keyword")
 
         if major:
-            queryset = queryset.filter(major=major)
+            queryset = queryset.filter(major__startswith=major)
 
         if semester:
             queryset = queryset.filter(semester__icontains=semester)
