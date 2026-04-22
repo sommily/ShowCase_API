@@ -58,7 +58,7 @@ class ProjectListView(generics.ListAPIView):
         keyword = self.request.query_params.get("keyword")
 
         if major:
-            queryset = queryset.filter(major__icontains=major)
+            queryset = queryset.filter(major=major)
 
         if semester:
             queryset = queryset.filter(semester__icontains=semester)
@@ -70,7 +70,14 @@ class ProjectListView(generics.ListAPIView):
             queryset = queryset.filter(
                 Q(project_title_cn__icontains=keyword)
                 | Q(project_title_en__icontains=keyword)
+                | Q(project_id__icontains=keyword)
                 | Q(students__icontains=keyword)
+                | Q(ib_instructors__icontains=keyword)
+                | Q(fa_instructors__icontains=keyword)
+                | Q(tm_instructors__icontains=keyword)
+                | Q(ge_instructors__icontains=keyword)
+                | Q(cd_instructors__icontains=keyword)
+                | Q(ca_instructors__icontains=keyword)
             )
 
         # 学年筛选
