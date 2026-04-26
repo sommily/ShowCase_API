@@ -129,6 +129,10 @@ class ShowcaseProject(models.Model):
     )
     email = models.EmailField(blank=True, null=True, verbose_name="联系邮箱")
 
+    # 互动数据
+    view_count = models.PositiveIntegerField(default=0, verbose_name="浏览量")
+    like_count = models.PositiveIntegerField(default=0, verbose_name="点赞数")
+
     # 审计字段
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新时间")

@@ -1,10 +1,11 @@
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.throttling import AnonRateThrottle
 
 from .models import ShowcaseProject
 from .serializers import (
@@ -34,6 +35,17 @@ class StandardResultsSetPagination(PageNumberPagination):
                 "results": data,
             }
         )
+
+
+# ==================== 自定义频率限制 ====================
+
+
+class LikeRateThrottle(AnonRateThrottle):
+    rate = "30/min"
+
+
+class ViewRateThrottle(AnonRateThrottle):
+    rate = "60/min"
 
 
 # ==================== 公共展示 API ====================
@@ -188,6 +200,40 @@ class AwardWinnersView(generics.ListAPIView):
             return ShowcaseProject.objects.none()
 
         return queryset.order_by("award_level", "sort_order")
+
+
+class ProjectLikeView(APIView):
+    """点赞接口 - POST 请求 like_count +1"""
+
+    authentication_classes = []
+    permission_classes = []
+    throttle_classes = [LikeRateThrottle]
+
+    def post(self, request, pk):
+        try:
+            project = ShowcaseProject.objects.get(pk=pk, is_published=True)
+        except ShowcaseProject.DoesNotExist:
+            return Response({"error": "Project not found"}, status=404)
+        ShowcaseProject.objects.filter(pk=pk).update(like_count=F("like_count") + 1)
+        project.refresh_from_db()
+        return Response({"like_count": project.like_count})
+
+
+class ProjectViewCountView(APIView):
+    """浏览量接口 - POST 请求 view_count +1"""
+
+    authentication_classes = []
+    permission_classes = []
+    throttle_classes = [ViewRateThrottle]
+
+    def post(self, request, pk):
+        try:
+            project = ShowcaseProject.objects.get(pk=pk, is_published=True)
+        except ShowcaseProject.DoesNotExist:
+            return Response({"error": "Project not found"}, status=404)
+        ShowcaseProject.objects.filter(pk=pk).update(view_count=F("view_count") + 1)
+        project.refresh_from_db()
+        return Response({"view_count": project.view_count})
 
 
 class FiltersView(APIView):

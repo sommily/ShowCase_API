@@ -52,6 +52,8 @@ class ShowcaseProjectListSerializer(serializers.ModelSerializer):
             "google_sheet_row_number",
             "submit_timestamp",
             "email",
+            "view_count",
+            "like_count",
         ]
 
     def _split_field(self, value):

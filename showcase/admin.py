@@ -15,6 +15,8 @@ class ShowcaseProjectAdmin(admin.ModelAdmin):
         "is_published",
         "is_featured",
         "sort_order",
+        "view_count",
+        "like_count",
         "updated_at",
     ]
     list_filter = [
@@ -30,7 +32,13 @@ class ShowcaseProjectAdmin(admin.ModelAdmin):
     list_per_page = 20
     ordering = ["sort_order", "-id"]
 
-    readonly_fields = ["created_at", "updated_at", "thumbnail_preview_large"]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+        "thumbnail_preview_large",
+        "view_count",
+        "like_count",
+    ]
 
     fieldsets = (
         (
@@ -98,6 +106,12 @@ class ShowcaseProjectAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "互动数据",
+            {
+                "fields": ("view_count", "like_count"),
+            },
+        ),
+        (
             "同步信息",
             {
                 "fields": ("sync_status",),
@@ -121,20 +135,22 @@ class ShowcaseProjectAdmin(admin.ModelAdmin):
     )
 
     def thumbnail_preview(self, obj):
-        if obj.thumbnail_url:
+        url = obj.thumbnail_file_url or obj.thumbnail_url
+        if url:
             return format_html(
                 '<img src="{}" style="width: 80px; height: 45px; object-fit: cover; border-radius: 4px;" />',
-                obj.thumbnail_url,
+                url,
             )
         return "-"
 
     thumbnail_preview.short_description = "缩略图"
 
     def thumbnail_preview_large(self, obj):
-        if obj.thumbnail_url:
+        url = obj.thumbnail_file_url or obj.thumbnail_url
+        if url:
             return format_html(
                 '<img src="{}" style="max-width: 400px; height: auto; border-radius: 8px;" />',
-                obj.thumbnail_url,
+                url,
             )
         return "-"
 

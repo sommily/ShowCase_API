@@ -29,6 +29,16 @@ urlpatterns = [
         name="project-detail",
     ),
     path(
+        "api/showcase/projects/<int:pk>/like/",
+        views.ProjectLikeView.as_view(),
+        name="project-like",
+    ),
+    path(
+        "api/showcase/projects/<int:pk>/view/",
+        views.ProjectViewCountView.as_view(),
+        name="project-view-count",
+    ),
+    path(
         "api/showcase/academic-years/",
         views.AcademicYearsView.as_view(),
         name="academic-years",
