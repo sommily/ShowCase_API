@@ -141,6 +141,21 @@ class FeaturedProjectsView(APIView):
         return Response(serializer.data)
 
 
+class TopLikedProjectsView(generics.ListAPIView):
+    """点赞排行 Top 10"""
+
+    serializer_class = ShowcaseProjectListSerializer
+    authentication_classes = []
+    permission_classes = []
+    pagination_class = None  # 不分页，直接返回列表
+
+    def get_queryset(self):
+        return ShowcaseProject.objects.filter(
+            is_published=True,
+            like_count__gt=0,
+        ).order_by("-like_count")[:10]
+
+
 class AcademicYearsView(APIView):
     """返回所有学年列表及其状态"""
 

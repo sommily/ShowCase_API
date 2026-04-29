@@ -19,6 +19,11 @@ urlpatterns = [
         name="project-awards",
     ),
     path(
+        "api/showcase/projects/top-liked/",
+        views.TopLikedProjectsView.as_view(),
+        name="top-liked",
+    ),
+    path(
         "api/showcase/projects/by-project-id/<str:project_id>/",
         views.ProjectByProjectIdView.as_view(),
         name="project-by-project-id",
